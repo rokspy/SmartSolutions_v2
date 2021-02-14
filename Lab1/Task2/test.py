@@ -1,5 +1,6 @@
-import RPi.GPIO as GPIO
+#import RPi.GPIO as GPIO
 import time 
+import threading 
 
 #GPIO.setmode(GPIO.BOARD)
 
@@ -7,8 +8,9 @@ import time
 #GPIO.setwarnings(False)
 
 def thread_routine(button_change):
-	button_change = 0
-	direction ^= 1
+	#button_change = 0
+	#direction ^= 1
+	print("Was Here")
 	time.sleep(0.5)
 
 
@@ -35,8 +37,13 @@ digits = {'': (1,1,1,1,1,1,1),
 button_state = 0
 count = 0
 
-while True:
-	if direction == 0: 	count += 1
-	else:			count -= 1 			
+if __name__ == "__main__":
 
+	x = threading.Thread(target=thread_routine, args=(1,))
+	try:
+		while True:
+			if direction == 0: 	count += 1
+			else:			count -= 1 			
+	except KeyboardInterrupt:
+		print("\n\nExiting")	
 
