@@ -29,8 +29,6 @@ button_state = 1
 count = 0
 
 while True:
-    if count == 10:         count = 0
-    elif count == -1:       count = 9
     if GPIO.input(input_pin) == 0: button_state ^= 1
     if button_state == 1:   count += 1
     else:                   count -= 1
