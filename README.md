@@ -2,6 +2,7 @@
 
 Repository made to make life easier for passing Smart Solutions course. (Try number two, first try apparently was not successful)
 
+SSD card is R11
 
 RasPi MAC is --> DC:A6:32:D7:24:E8
 
