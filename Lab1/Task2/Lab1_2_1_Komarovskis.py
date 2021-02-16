@@ -22,9 +22,10 @@ digits = {'': (1,1,1,1,1,1,1),
         }
 
 GPIO.setup(pins, GPIO.OUT)
-while True:
-    for k in range(10):
-        GPIO.output(pins, digits[str(k)])
-        time.sleep(0.5)
-
-GPIO.cleanup(pins)
+try:
+    while True:
+        for k in range(10):
+            GPIO.output(pins, digits[str(k)])
+            time.sleep(0.5)
+except KeyboardInterrupt:
+    GPIO.cleanup(pins)
