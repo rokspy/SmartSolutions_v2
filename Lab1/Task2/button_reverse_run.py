@@ -25,13 +25,15 @@ digits = {'': (1,1,1,1,1,1,1),
 GPIO.setup(pins, GPIO.OUT)
 GPIO.setup(input_pin, GPIO.IN, pull_up_down=GPIO.PUD_UP)
 
-button_state = 1
+button_state = 0
 count = 0
 
 while True:
     if GPIO.input(input_pin) == 0: button_state ^= 1
     if button_state == 1:   count += 1
     else:                   count -= 1
+    if count == 10:         count = 0
+    elif count == -1:       count = 9
 
     print(count)
     GPIO.output(pins, digits[str(count)])
