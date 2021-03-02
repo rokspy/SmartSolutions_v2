@@ -4,10 +4,11 @@ import sys
 import threading 
 
 def listenThread():
-	global s
+	global s, connection_status
 	while True:
 		data = s.recv(4096).decode()
-		s.sendall("Checking if connection is open".encode())
+		if data == "Close":
+			break
 		print(data)
 
 
@@ -23,13 +24,16 @@ elif len(sys.argv) == 3:
 
 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 s.connect((IP_addr, port))
-
+connection_status = 1
 
 listen_thread = threading.Thread(target=listenThread, daemon=True)
 listen_thread.start()
 time.sleep(1)
 try:
 	while True:
+		if connection_status == 0:
+			s.close()
+			break
 		msg = input("Input message: ")	
 		s.sendall(msg.encode())
 		print("Sent: " + msg)

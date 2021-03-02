@@ -5,7 +5,6 @@ import sys
 
 def clientThread(connection):
 	connection.send("\n\nWelcome to my server ".encode())	
-	
 	while True:
 		try:	
 			data = connection.recv(4096)	
@@ -29,7 +28,7 @@ if len(sys.argv) > 1:
 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
 s.bind((IP_addr, port))
-s.listen(10) 			# Number of possible connections
+s.listen(2) 			# Number of possible connections
 
 
 try:
