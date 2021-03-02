@@ -6,10 +6,13 @@ import threading
 def listenThread():
 	global s, connection_status
 	while True:
-		data = s.recv(4096).decode()
-		if data == "Close":
+		try:
+			data = s.recv(4096).decode()
+			if len(data) > 0: print(data)
+		except:
+			connection_status = 0
 			break
-		print(data)
+
 
 
 port = 8888
@@ -26,18 +29,19 @@ s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 s.connect((IP_addr, port))
 connection_status = 1
 
-listen_thread = threading.Thread(target=listenThread, daemon=True)
+listen_thread = threading.Thread(target=listenThread, daemon=False)
 listen_thread.start()
 time.sleep(1)
 try:
 	while True:
 		if connection_status == 0:
+			print("No more Connection")
 			s.close()
 			break
 		msg = input("Input message: ")	
 		s.sendall(msg.encode())
 		print("Sent: " + msg)
-		time.sleep(0.1)
+		time.sleep(0.2)
 
 
 
