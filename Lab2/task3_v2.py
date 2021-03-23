@@ -98,6 +98,8 @@ def clientThread(connection, connection_index):
                             function_socket,function_connection, display_func = startFunction("./display_func.py", 8890, connection)
                             display_taken = 1       # Tells globally that the function is taken 
                             display_started = 1     # For memorising which function is being taken in this thread
+                        elif data == "DISPLAY" and display_taken == 1:
+                            connection.sendall("DISPLAY function is not available".encode())
 
 
         except KeyboardInterrupt:
