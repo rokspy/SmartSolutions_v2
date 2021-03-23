@@ -34,6 +34,7 @@ try:
     while True:
         send_msg = input("Send data: ")
         s.sendall(send_msg.encode())
+        time.sleep(0.5)
         if send_msg == "kill":
             s.close()
             break

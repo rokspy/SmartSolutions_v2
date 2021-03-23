@@ -18,24 +18,24 @@ def sendToFunction(conn, sock, subprocess, function_clear, data):
                 should_break = 1
                 return should_break, function_clear
 
-def startFunction(function_name, port):
+def startFunction(function_name, port, client_connection):
     function_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     function_socket.bind(("localhost",port))
     function_socket.listen(2)
     func_subproc = subprocess.Popen(function_name)
     function_connection,_ = function_socket.accept()
-    listen_to_function = threading.Thread(target=listenToFunction, args=(function_connection,), daemon=True)
+    listen_to_function = threading.Thread(target=listenToFunction, args=(function_connection, client_connection,), daemon=True)
     listen_to_function.start()
     
     return function_socket, function_connection, func_subproc
         
-def listenToFunction(connection):
+def listenToFunction(connection, client_connection):
     while True:
             try:
                 received = connection.recv(4096).decode()
                 if not received:
                     break
-                print(received)
+                client_connection.sendall(received.encode())
             except:
                 break
                 
@@ -89,13 +89,13 @@ def clientThread(connection, connection_index):
                             if check == 1: break	
 		        # If the previous loops any functions has not been started, following condtions are specific messages from the client that will start the function, also checks if the function is not already taken
                         elif data == "LED" and led_taken == 0:
-                            function_socket,function_connection, led_func = startFunction("./led_func.py", 8889)
+                            function_socket,function_connection, led_func = startFunction("./led_func.py", 8889, connection)
                             led_taken = 1       # Tells globally that the function is taken 
                             led_started = 1     # For memorising which function is being taken in this thread
                         elif data == "LED" and led_taken == 1:
                             connection.sendall("LED function is not available".encode())
                         elif data == "DISPLAY" and display_taken == 0:
-                            function_socket,function_connection, display_func = startFunction("./display_func.py", 8890)
+                            function_socket,function_connection, display_func = startFunction("./display_func.py", 8890, connection)
                             display_taken = 1       # Tells globally that the function is taken 
                             display_started = 1     # For memorising which function is being taken in this thread
 
