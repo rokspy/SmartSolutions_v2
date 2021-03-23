@@ -50,7 +50,8 @@ def clientThread(connection, connection_index):
         try:
             while True:
                 	# Wait for data fromt the client
-                        data = connection.recv(4096).decode()
+                        try: data = connection.recv(4096).decode()
+                        except: data = "kill"
                         # Check if data valid, if not run kill routine 
                         if not data:
                             connection.close()

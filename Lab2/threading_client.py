@@ -1,6 +1,7 @@
 import socket 
 import threading 
 import time
+import sys
 
 def listenThread():
         global s, thread_lost
@@ -12,9 +13,18 @@ def listenThread():
                 break
             print(data)
 
+ip_address = "localhost"
+port = 8888
+
+if len(sys.argv) == 2:
+    ip_address = sys.argv[1]
+elif len(sys.argv) == 3:
+    ip_address = sys.argv[1]
+    port = int(sys.argv[2])
+
 
 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-s.connect(("localhost", 8888))
+s.connect((ip_address, port))
 thread_lost = 0
 
 listen_thread = threading.Thread(target=listenThread, daemon=True)
