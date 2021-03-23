@@ -5,8 +5,7 @@ import socket
 import time
 
 def functionThread():
-        global function_state, s, frequency
-        leds = [37, 35]
+        global function_state, s, frequency, leds
         led_state = 1
         GPIO.setup(leds, GPIO.OUT)
         while True:
@@ -19,6 +18,7 @@ def functionThread():
                 GPIO.output(leds, 0)
 
             
+leds = [37, 35]
 GPIO.setmode(GPIO.BOARD)
 GPIO.setwarnings(False)
 
@@ -34,18 +34,23 @@ new_thread.start()
 while True:
     try:
         data = s.recv(4096).decode()
+        if not data:
+            break
         if data == "stop":              function_state = 0
         elif data == "start":           function_state = 1
         elif data == "state":
-            if function_state == 0:     s.sendall("IS OFF".encode())
-            elif function_state == 1:   s.sendall("IS ON".encode())
-        elif data == "kill":            break
+            if function_state == 0:     
+                s.sendall("IS OFF".encode())
+            elif function_state == 1:   
+                s.sendall("IS ON".encode())
+        elif data == "kill":            
+            print("Received the Kill")
+            break
         else:
             try:                        frequency = float(data)
             except:                     print("No valid solution for the message") 
     except KeyboardInterrupt:
         s.close()
-        GPIO.cleanup()
+        GPIO.cleanup(leds)
 s.close()
-GPIO.cleanup()
-
+GPIO.cleanup(leds)

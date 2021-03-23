@@ -7,13 +7,18 @@ import random
 
 
 def threadRoutine():
-    global data, pins, digits
+    global data, pins, digits, s
     local_data = "up"
     count = 0
     while True:
         time.sleep(0.5)
+        if not data:
+            break
         if data in ["up", "down", "random"]:
             local_data = data
+        if data == "state":
+            s.sendall(local_data.encode())
+            data = local_data
         if local_data == "up":
             count += 1
             if count == 10: count = 0
@@ -55,13 +60,11 @@ new_thread.start()
 while True:
     try:
        data = s.recv(4096).decode() 
-       print(data)
        if not data:
             GPIO.cleanup()
             s.close()
-       print(data)
        if data == "kill":
-           GPIO.cleanup()
+           GPIO.cleanup(pins)
            s.close()
            break
     
