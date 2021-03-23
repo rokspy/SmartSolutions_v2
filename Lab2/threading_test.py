@@ -4,33 +4,41 @@ import numpy as np
 import time
 import subprocess
 
+
 def clientThread(connection, connection_index):
     global tickets, led_taken, display_taken
         socket_started = 0
+	led_started = 0
+	display_started = 0
+
         connection.send("\n\nWelcome to my server ".encode())
         try:
             while True:
                 # Wair for data fromt the client
-                        data = connection.recv(4096).decode()
-                        print(data)
-                        # Check if data valid, if not run kill routine 
-                        if not data:
-                            connection.close()
-                                tickets[connection_index] = 0
-                                try:	function_socket.close()
-                                except: continue
-                                if led_started == 1:
-                                    led_taken=0
-                                        led_func.kill()
-                                elif display_started == 1:	display_taken = 0
-                                break
+                data = connection.recv(4096).decode()
 
-                        if led_started == 1 or display_started == 1:
-                            function_socket.sendall(data.encode())
-                        if data == "LED":
-                            function_socket = socket.Socket(socket.AF_INET, socket.SOCK_STREAM)
-                                s.bind(("local_host",8889))
-                                led_func = subprocess("./led_func.py")
+                # Check if data valid, if not run kill routine
+                if not data:
+                    connection.close()
+                    tickets[connection_index] = 0
+                    try:	function_socket.close()
+                    except: 	continue
+                    if led_started == 1:
+                        led_taken=0
+                    	led_func.kill()
+                    elif display_started == 1:
+			display_taken = 0
+			display_func.kill()
+                    break
+ 
+		# If either LED function or display function is started by this thread then forward the data received from the client to the function
+                if led_started == 1 or display_started == 1:
+                    function_socket.sendall(data.encode())
+
+                if data == "LED":
+                    function_socket = socket.Socket(socket.AF_INET, socket.SOCK_STREAM)
+                    s.bind(("local_host",8889))
+                    led_func = subprocess("./led_func.py")
 
         except KeyboardInterrupt:
             print("Kill connection")
