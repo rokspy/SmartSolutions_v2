@@ -19,15 +19,17 @@ def clientThread(connection):
 	connection.close()
 
 port = 8888 
-host = "localhost"
-IP_addr = socket.gethostbyname(host)
+ip_address = "localhost"
 
-if len(sys.argv) > 1:
-	port = int(sys.argv[1])
+if len(sys.argv) == 2:
+	ip_address = sys.argv[1]
+if len(sys.argv) == 3:
+	ip_address = sys.argv[1]
+	port = sys.argv[2]
 
 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
-s.bind((IP_addr, port))
+s.bind((ip_address, port))
 s.listen(2) 			# Number of possible connections
 
 

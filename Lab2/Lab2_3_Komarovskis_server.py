@@ -1,127 +1,171 @@
-import socket
-import threading 
+import threading
 import sys
-import time 
-import RPi.GPIO as GPIO
+import socket
+import numpy as np
+import time
+import subprocess
 
-### FUNCTIONS ###
+def sendToFunction(conn, sock, subprocess, function_clear, data):
+        should_break = 0
+        try:
+                conn.sendall(data.encode())     
+                return should_break, function_clear
+        except:
+                print("No connection to the function")
+                function_clear = 0
+                sock.close()
+                subprocess.kill()
+                should_break = 1
+                return should_break, function_clear
 
-def LEDThread():
-    #GPIO.output(led)
-    global led_talk, LED_func_status
-    local_state = None 
-    leds = 1
-    switching = 1
-    freq = 1
-    falsh_state = 1
-    while True:
-        if led_talk == "close" or len(led_talk) == 0:
-            GPIO.output((led_pin1, led_pin2), 0)
-            break
-        if local_state != led_talk:
-            print(led_talk)
-            local_state = led_talk
-            if led_talk=="off":
-                leds = 0
-            elif led_talk == "on":
-                leds = 1
-            else:
-                try:
-                    if float(led_talk) < 2:
-                        freq = float(led_talk)
-                except:
-                    print("No valid use")
-        if leds == 1:
-           GPIO.output(led_pin1, switching)
-           switching ^= 1
-           GPIO.output(led_pin2, switching)
-           time.sleep(freq)
-        else:
-            GPIO.output((led_pin1, led_pin2), 0)
-    LED_func_status = 0
-
-
-def clientThread(connection):
-        global led_talk
-        print("New Connection established")
-        global LED_func_status, Display_func_status
-        connection.send("\n\nWelcome to my server ".encode())   
-        
-        local_state = "none"
-        
-        data = connection.recv(4096).decode()
+def startFunction(function_name, port, client_connection):
+    function_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    function_socket.bind(("localhost",port))
+    function_socket.listen(2)
+    func_subproc = subprocess.Popen(function_name)
+    function_connection,_ = function_socket.accept()
+    listen_to_function = threading.Thread(target=listenToFunction, args=(function_connection, client_connection,), daemon=True)
+    listen_to_function.start()
     
-        if data == "LED" and LED_func_status == 0:
-            led_thread.start()
-            LED_func_status = 1
-            while True:
-                if LED_func_status == 0:
-                    print("I see that it goes to zero")
+    return function_socket, function_connection, func_subproc
+        
+def listenToFunction(connection, client_connection):
+    while True:
+            try:
+                received = connection.recv(4096).decode()
+                if not received:
                     break
-                led_talk = connection.recv(4096).decode()
+                client_connection.sendall(received.encode())
+            except:
+                break
+                
+
+def clientThread(connection, connection_index):
+		# led/display_taken are to check or tell gloablly that the corresponding function is taken 
+        global tickets, led_taken, display_taken
+		# led/display_started used to remember which function was started within this thread
+        led_started = 0
+        display_started = 0
+        connection.send("\n\nWelcome to my server ".encode())
+        try:
+            while True:
+                	# Wait for data fromt the client
+                        try: data = connection.recv(4096).decode()
+                        except: data = "kill"
+                        # Check if data valid, if not run kill routine 
+                        if not data:
+                            connection.close()
+                            tickets[connection_index] = 0
+                            print("client ctrl+c...")
+                            try:
+                                if display_started==1 or led_started == 1: function_connection.sendall("kill".encode())
+                            except: continue
+                            time.sleep(1)
+                            try:
+                                function_connection.close()
+                                function_socket.close()
+                            except: continue
+                            if led_started == 1:
+                                led_taken=0
+                                led_func.kill()
+                            elif display_started == 1:
+                                display_taken=0
+                                display_func.kill()     
+                            break
+                        if data == "kill":
+                            try:
+                                if display_started==1 or led_started == 1: function_connection.sendall("kill".encode())
+                            except: continue
+                            time.sleep(1)
+                            
+
+                       	# If led function was chosen in the previous loops, the following condition will be met  
+                        elif led_started == 1:
+							# This function tries to send the data received from the client to the function, if fails then closes the connections and returns a variable that indicates that while loop has to be killed
+                            check, led_taken = sendToFunction(function_connection, function_socket, led_func, led_taken, data)
+                            if check == 1: break
+                        elif display_started == 1:
+                            check, display_taken = sendToFunction(function_connection, function_socket, display_func, display_taken, data)
+                            if check == 1: break	
+		        # If the previous loops any functions has not been started, following condtions are specific messages from the client that will start the function, also checks if the function is not already taken
+                        elif data == "LED" and led_taken == 0:
+                            function_socket,function_connection, led_func = startFunction("./led_func.py", 8889, connection)
+                            led_taken = 1       # Tells globally that the function is taken 
+                            led_started = 1     # For memorising which function is being taken in this thread
+                        elif data == "LED" and led_taken == 1:
+                            connection.sendall("LED function is not available".encode())
+                        elif data == "DISPLAY" and display_taken == 0:
+                            function_socket,function_connection, display_func = startFunction("./display_func.py", 8890, connection)
+                            display_taken = 1       # Tells globally that the function is taken 
+                            display_started = 1     # For memorising which function is being taken in this thread
+                        elif data == "DISPLAY" and display_taken == 1:
+                            connection.sendall("DISPLAY function is not available".encode())
 
 
-        elif data == "Display":
-            print("Display stuff")
-
-        else:
-            connection.sendall("No valid function or the function is taken".encode())
-
-        connection.close()
-        print("Connection Closed")
-
-
-### RASPI GPIO SETUP
-GPIO.setmode(GPIO.BOARD)
-GPIO.setwarnings(False)
-
-led_pin1 = 11
-led_pin2 = 13
-led_state1 = 0
-led_state2 =1 
-
-GPIO.setup(led_pin1, GPIO.OUT, initial=0)
-GPIO.setup(led_pin2, GPIO.OUT, initial=0)
-
-LED_func_status = 0
-Display_func_status = 0
-flash_toggle = 1
-
-led_talk = "on"
-led_thread = threading.Thread(target=LEDThread, args = (), daemon=False)
-
-### MAIN CODE ####
-
-port = 8888 
-host = "localhost"
-IP_addr = socket.gethostbyname(host)
+        except KeyboardInterrupt:
+			
+            print("Kill connection")
+            connection.close()
+            tickets[connection_index] = 0
+            try:    
+                    function_connection.close()
+                    function_socket.close()
+                    if led_started == 1:
+                        led_taken=0
+                        led_func.kill()
+                    elif display_started == 1:
+                        display_taken = 0
+                        display_func.kill()
+            except:pass 
 
 if len(sys.argv) == 2:
-        IP_addr = sys.argv[1]
+	ip_address = sys.argv[1]
+	port = 8888
 elif len(sys.argv) == 3:
-        IP_addr = sys.argv[1]
-        port = int(sys.argv[2])
+	ip_address = sys.argv[1]
+	port = int(sys.argv[2])
+else:
+	ip_address = "localhost"
+	port = 8888
+
+
+led_port = 8889
+display_port = 8890
+led_taken = 0
+display_taken = 0
 
 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+s.bind((ip_address, port))
+s.listen(10)
 
-s.bind((IP_addr, port))
-print("IP_address: " + IP_addr)
-print("Port: " + str(port) + "\n")
-s.listen(10)                    # Number of possible connections
-
+# Using a list to keep track of connections and order of connections 
+tickets = np.zeros(2)
+connections = [0,0]
 
 try:
-        while True:
-                print("Waiting for conncetion...")
-                connection, address = s.accept()
-                print("New connection...")
-                                
+    while True:
+        next_ticket = np.where(tickets==0)              # Look for usable connection locations 
+        if 0 in tickets:                                # If there are usable locations start thread for the client 
+            print("Waiting for connection...")  
+            free_loc = np.where(tickets==0)[0][0]
+            connections[free_loc], address = s.accept() # All connections are saved in a list 
+            new_thread = threading.Thread(target=clientThread, args=(connections[free_loc],free_loc), daemon=True)
+            new_thread.start()
+            tickets[free_loc] = 1                   # Set the connection location to taken
+            print("New Connetion...")
+        else:                                           # If there are no location spots available, then wait
+            print("...Can't take more clients...")
+            print()
+            time.sleep(10)
 
-                new_thread = threading.Thread(target=clientThread, args = (connection,), daemon=True)
-                new_thread.start()
 except KeyboardInterrupt:
-        time.sleep(0.1)
-        print("Socket closed")
-        GPIO.cleanup()
-        s.close()       
+    for k in range(len(connections)):
+        if connections[k] != 0:
+                connections[k].close()
+        s.close()
+
+
+
+
+
 

@@ -7,7 +7,8 @@ def listenThread():
 	global s
 	while True:
 		data = s.recv(4096).decode()
-		s.sendall("Checking if connection is open".encode())
+		if not data:
+			break
 		print(data)
 
 
