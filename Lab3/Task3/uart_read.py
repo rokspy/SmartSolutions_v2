@@ -21,20 +21,20 @@ ser.timeout = 1
 ser.write_timeout = 1
 ser.open()
 
-pixels = neopixel.NeoPixel(board.D12,1)   # GPIO1, 12 pin on the board
+pixels = neopixel.NeoPixel(board.D18,1)   # GPIO1, 12 pin on the board
+pixels[0] = (0,0,0) 
 
 
+
+new_thread = threading.Thread(target=threadRoutine, args = (ser,), daemon=True)
+new_thread.start()
 while True:
-    pixels[0] = (255,0,0) 
-#new_thread = threading.Thread(target=threadRoutine, args = (ser,), daemon=True)
-#new_thread.start()
-#while True:
-#        try:
-#            msg =input("Send message: ")
-#            ser.write(msg.encode())
-#        except KeyboardInterrupt: 
-#                ser.close()
-#                print('...Exit command')
-#                sys.exit()
-#        read_serial = ''
+        try:
+            msg =input("Send message: ")
+            ser.write(msg.encode())
+        except KeyboardInterrupt: 
+                ser.close()
+                print('...Exit command')
+                sys.exit()
+        read_serial = ''
 
