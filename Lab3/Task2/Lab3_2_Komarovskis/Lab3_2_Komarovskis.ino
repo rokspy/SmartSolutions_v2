@@ -1,6 +1,6 @@
 #include <SoftwareSerial.h>
 
-SoftwareSerial mySer(3,4) // RX,TX
+SoftwareSerial mySer(3,4); // RX,TX
 int read_data;
 
 
