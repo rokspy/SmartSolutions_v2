@@ -21,9 +21,11 @@ def threadRoutine(ser):
 
         except: continue
         the_time.append(time_count)
-        temp.append(msg)         
+        temp.append(float(msg))         
         plt.plot(the_time, temp, 'b')
         plt.grid()
+        plt.xlabel("Time, s")
+        plt.ylabel("Temperature, C")
         plt.pause(0.001)
         plt.grid()
         time_count += 1    
