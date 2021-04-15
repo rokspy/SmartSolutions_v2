@@ -1,28 +1,35 @@
 #include <SoftwareSerial.h>
+#include <DallasTemperature.h>
+#include <OneWire.h>
 
-SoftwareSerial mySer(3,4); // RX,TX
-int read_data;
+// LAB3 => 2.3.2.
 
+#define ONE_WIRE_BUS 2
 
-void setup() {
+OneWire oneWire(ONE_WIRE_BUS);
+DallasTemperature sensor(&oneWire);
+
+int rec;
+
+SoftwareSerial mySer(3,4); // RX TX
+
+void setup(){
   Serial.begin(9600);
+  while(!Serial){
+    ;
+  }
   mySer.begin(9600);
-  pinMode(13, OUTPUT);
+  sensor.begin();
 }
 
-void loop() {
+void loop() // run over and over
+{
   if(mySer.available()){
-    read_data = mySer.read();
-    Serial.println(read_data);
-    if(read_data == '0')        digitalWrite(13, LOW);
-    else if(read_data == '1')   digitalWrite(13, HIGH);
-    else if(read_data == 'S'){
-      if(digitalRead(13)){
-        mySer.write("1");
-      }
-      else{
-        mySer.write("0");
-      }
-    }
+    rec = mySer.read(); 
+  }
+  if(rec == 57){
+    sensor.requestTemperatures();
+    mySer.print(sensor.getTempCByIndex(0));
+    rec = 0;
   }
 }

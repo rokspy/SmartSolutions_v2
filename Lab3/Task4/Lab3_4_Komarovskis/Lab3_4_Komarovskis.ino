@@ -4,15 +4,20 @@ SoftwareSerial mySer(3,4); // RX,TX
 
 // Arduino UNO ADC resolution = 10bit (1023)
 
+int temp;
+
 void setup() {
   Serial.begin(9600);
-  pinMode(A0, INPUT);
+  mySer.begin(9600);
+  pinMode(A3, INPUT);
 }
 
 float analogConvert(int analog_pin);
 
 void loop() {
-  Serial.println(analogConvert(A0));
+  temp = analogConvert(A3) * 1000;
+  Serial.println(temp);
+  mySer.print(temp);
   delay(1000);
 
 }

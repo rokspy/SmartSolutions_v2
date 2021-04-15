@@ -35,9 +35,3 @@ while True:
     mylcd.lcd_display_string("Voltage,V: "+msg, 1)
 
 
-
-#new_thread = threading.Thread(target=threadRoutine, args = (ser,), daemon=True)
-#new_thread.start()
-#while True:
-#    msg = ser.read(5) 
-#    lcd.message = "Temperature:\n " + msg + " C"
