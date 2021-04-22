@@ -1,29 +1,44 @@
 import serial
+import time
 import threading
 import RPi.GPIO as GPIO
 
-def threadRoutine(ser):
-    while True:
-        msg = ser.read().decode()
-        if msg!="":
-            if msg=="1":
-                print("LED is ON")
-            elif msg=="0":
-                print("LED is OFF")
+GPIO.setmode(GPIO.BOARD)
+GPIO.setwarnings(False)
+
+led_pin = 40
+GPIO.setup(led_pin, GPIO.OUT)
 
 ser = serial.Serial()
 ser.baudrate = 9600
-ser.port = '/dev/ttyAMA0'
-ser.timeout = 2
+ser.port = '/dev/ttyS0'
+ser.timeout = 1
 ser.open()
 
-new_thread = threading.Thread(target=threadRoutine, args = (ser,), daemon=True)
-new_thread.start()
+LED_pin = 40
+
+print()
 
 while True:
     try:
-        msg = input("Send: ")
-        ser.write(msg.encode())
+
+        msg = ser.read(10).decode()[0:-1]
+        #msg = ser.read(10).decode()
+        if msg!="":
+            if msg=="1":
+                GPIO.output(led_pin, 1)
+                print("LED is ON")
+                message = 'ON'.encode()
+                ser.write(message)
+                ser.write(10)
+                time.sleep(1)
+            elif msg=="0":
+                GPIO.output(led_pin, 0)
+                print('LED is OFF')
+                message = 'OFF'.encode()
+                ser.write(message)
+                ser.write(10)
+                time.sleep(1)
     except KeyboardInterrupt:
         ser.close()
         GPIO.cleanup()
