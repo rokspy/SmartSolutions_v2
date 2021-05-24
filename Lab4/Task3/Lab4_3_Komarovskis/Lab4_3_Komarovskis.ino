@@ -60,7 +60,9 @@
 // the communication through the serial monitor works too...
 
 #include <SoftwareSerial.h>
+#include  <LiquidCrystal_I2C.h>
 
+LiquidCrystal_I2C lcd(0x27,20,4);  // set the LCD address to 0x27 for a 16 chars and 2 line display
 SoftwareSerial bt(3,2); // rx,tx
 
 int ENpin=4;
@@ -69,9 +71,12 @@ int VCCpin=13;
 String slaveName="rokspy_slave";
 
 int counter=0;
-String inputString,outputString;
+String inputString,outputString, LCD_message;
 
 void setup() {
+  lcd.init();                      // initialize the lcd 
+  lcd.backlight();
+  
 // EN pin
   pinMode(ENpin,OUTPUT);
 // VCC pin
@@ -101,6 +106,7 @@ atcommand("AT+ORGL\r\n");
 //atcommand("AT+RMAAD\r\n");
 atcommand("AT+NAME="+slaveName+"\r\n");
 atcommand("AT+ADDR?\r\n");
+atcommand("AT+CLASS=1\r\n");
 atcommand("AT+UART=9600,0,0\r\n");
 atcommand("AT+PSWD?\r\n");
 atcommand("AT+ROLE=0\r\n");
@@ -129,6 +135,12 @@ void loop() {
 if(bt.available())
 {
   inputString=bt.readString();
+  LCD_message = inputString;
+  LCD_message.remove(LCD_message.length()-1);
+  
+  lcd.clear();
+  lcd.print(LCD_message);
+  
   delay(500); // set the delay long enough to read in the entire incoming buffer
   Serial.println(inputString);
   if(inputString=="send"); // master is expected to send this keyword
