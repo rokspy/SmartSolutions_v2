@@ -14,7 +14,7 @@ byte ledPin = 2;
 char ssid[] = "robootika";           // SSID of your AP
 char pass[] = "DigiLaboriArvutiKlass";         // password of your AP
 
-IPAddress server(172,17,54,228);     // IP address of the AP
+IPAddress server(172,17,54,208);     // IP address of the AP
 WiFiClient client;
 
 void setup() {
