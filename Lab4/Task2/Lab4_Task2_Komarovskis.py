@@ -9,9 +9,7 @@ GPIO.setwarnings(False)
 led_pin = 40
 GPIO.setup(led_pin, GPIO.OUT)
 
-ser = serial.Serial()
-ser.baudrate = 9600
-ser.port = '/dev/ttyS0'
+ser = serial.Serial("/dev/ttyS0", baudrate=9600)
 ser.timeout = 1
 ser.open()
 
@@ -22,9 +20,10 @@ print()
 while True:
     try:
 
-        msg = ser.read(10).decode()[0:-1]
+        msg = ser.readline().decode()
         #msg = ser.read(10).decode()
         if msg!="":
+            print(msg)
             if msg=="1":
                 GPIO.output(led_pin, 1)
                 print("LED is ON")
@@ -37,7 +36,6 @@ while True:
                 print('LED is OFF')
                 message = 'OFF'.encode()
                 ser.write(message)
-                ser.write(10)
                 time.sleep(1)
     except KeyboardInterrupt:
         ser.close()
