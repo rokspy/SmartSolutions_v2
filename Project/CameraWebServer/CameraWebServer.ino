@@ -21,8 +21,16 @@
 
 const char* ssid = "rokspy";
 const char* password = "ququbqe83icbg";
+//IPAddress server(WiFi.localIP());
+//WiFiClient client;
 
 void startCameraServer();
+
+// Added Code ~
+WiFiServer server(8888);
+int turn_state = 0;
+bool flashlight_state = 0; 
+//            ~
 
 void setup() {
   Serial.begin(115200);
@@ -106,14 +114,61 @@ void setup() {
   Serial.println("' to connect");
 
   pinMode(33, OUTPUT);
+  pinMode(4, OUTPUT);
+  pinMode(12, OUTPUT);
+  pinMode(13, OUTPUT);
+  digitalWrite(33, LOW);
+  digitalWrite(4, LOW);
+  digitalWrite(12, LOW);
+  digitalWrite(13, LOW);
+  
+  server.begin();
 }
 
 void loop() {
-  // put your main code here, to run repeatedly:
-  if(Serial.available()){
-    digitalWrite(33, HIGH);
-  }
-  else{
-    digitalWrite(33, LOW);
+
+  WiFiClient pc_client = server.available();
+  if (pc_client){
+    while(pc_client.connected()){
+      if(pc_client.available()){
+
+        String received = pc_client.readString();
+        pc_client.flush();
+        pc_client.print("1");
+        turn_state = received.toInt();
+        Serial.println(turn_state);
+        if(turn_state == 0){
+          digitalWrite(12, LOW);
+          digitalWrite(13, LOW);
+          flashlight_state = 0;
+        }
+        else if (turn_state == 1){
+          digitalWrite(12, HIGH);
+          Serial.println("Right");
+        }
+        else if (turn_state == 2){
+          digitalWrite(13, HIGH);
+          Serial.println("Left");
+        }
+        else if (turn_state == 3){
+          if(!digitalRead(4) && flashlight_state == 0){
+            digitalWrite(4, HIGH);     
+            flashlight_state = 1;
+          }
+          else if(digitalRead(4) && flashlight_state == 0){
+
+            digitalWrite(4, LOW);
+            flashlight_state = 1;
+          }
+        }
+      }
+    }
   }
 }
+  
+//  if(Serial.available()){
+//    digitalWrite(33, HIGH);
+//  }
+//  else{
+//    digitalWrite(33, LOW);
+//  }
