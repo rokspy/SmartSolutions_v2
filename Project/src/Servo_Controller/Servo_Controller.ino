@@ -13,16 +13,6 @@ void setup() {
 }
 
 void loop() {
-//
-//  for(int k=0; k<180; k++){
-//    camera_servo.write(k);
-//    delay(10);
-//  }
-//  for(int k=180; k>0; k--){
-//    camera_servo.write(k);
-//    delay(10);
-//  }
-//  
   if(digitalRead(5) && !digitalRead(6)){
     if(servo_pos != 180){
       servo_pos++;
