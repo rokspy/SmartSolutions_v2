@@ -13,7 +13,7 @@ WiFiServer server(80);
 IPAddress IP(10,10,10,1);
 IPAddress mask = (255, 255, 255, 0);
 
-//SoftwareSerial mySer(3,1);
+SoftwareSerial mySer(D1,D2);
 
 byte ledPin = 2;
 
@@ -29,22 +29,24 @@ void setup() {
   Serial.println("Server started.");
   Serial.print("IP: ");     Serial.println(WiFi.softAPIP());
   Serial.print("MAC:");     Serial.println(WiFi.softAPmacAddress());
-//  mySer.begin(9600);
+  mySer.begin(9600);
 }
 
 void loop() {
   WiFiClient client = server.available();
   if (!client) {return;}
   digitalWrite(ledPin, LOW);
-  String request = client.readStringUntil('\r');
-  Serial.println("********************************");
-  Serial.println("From the station: " + request);
-//  mySer.println(request);
-  client.flush();
+  if(client.available()){
+    String request = client.readStringUntil('\r');
+    Serial.println("********************************");
+    Serial.println("From the station " + request);
+    mySer.print(request);
+    client.flush();
+  }
 //  Serial.print("Byte sent to the station: ");
 //  Serial.println(client.println(request + "ca" + "\r"));
   String saadetud=Serial.readString();
   client.println(saadetud+"\r");
-  Serial.println(saadetud);
+//  Serial.println(saadetud);
   digitalWrite(ledPin, HIGH);
 }
