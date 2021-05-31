@@ -56,12 +56,15 @@ void setup() {
 
     if(distance < 50){
       digitalWrite(ledPin, LOW);
-      Serial.print("Value "); Serial.println(distance);
-      client.println("2\r");
-      client.flush();
-      digitalWrite(ledPin, HIGH);
-      client.stop();
-      delay(5000);
+      if(client.connect(server, 80) == 1){
+        Serial.print("Value "); Serial.println(distance);
+        client.println("2\r");
+        client.flush();
+        digitalWrite(ledPin, HIGH);
+        client.stop();
+        delay(1000);
+      }
+      else Serial.println("Couldnt establish a connection");
     }
 
 }

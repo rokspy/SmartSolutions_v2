@@ -12,9 +12,7 @@ void loop() {
   if(Serial.available()){
     mySer.print(Serial.readString());
   }
-  delay(100);
   if(mySer.available()){
     Serial.println(mySer.readString());
   }
-  delay(100);
 }

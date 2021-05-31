@@ -58,9 +58,10 @@ void loop() {
       client.flush();
       digitalWrite(ledPin, HIGH);
       client.stop();
-      delay(30000);
+      delay(5000);
     }
     else Serial.println("Couldn't establish a connection");
   }
   else Serial.println("Nothing Detected");
+  delay(100);
 }
